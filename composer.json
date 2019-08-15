@@ -1,0 +1,18 @@
+{
+    "name": "bigfork/silverstripe-simpledatefield",
+	"license": "BSD",
+	"require": {
+		"silverstripe/framework": "^4",
+		"ext-intl": "*"
+	},
+	"autoload": {
+        "psr-4": {
+            "Bigfork\\SilverStripeSimpleDateField\\": "src/"
+        }
+    },
+    "extra": {
+        "expose": [
+            "client/dist"
+        ]
+    }
+}

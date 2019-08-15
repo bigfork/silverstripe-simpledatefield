@@ -1,0 +1,57 @@
+
+.cms-edit-form {
+  .simpledate {
+    .form__field-holder {
+      margin-bottom: -1rem;
+
+      .form-group {
+        .form__field-label,
+        .form__field-holder {
+          padding-right: 0;
+          padding-left: 0;
+        }
+      }
+    }
+  }
+
+  .simpledate__item {
+    display: inline-block;
+    margin-right: 20px;
+    margin-bottom: 1rem;
+
+    .form-group {
+      display: block;
+      margin: 0;
+    }
+
+    .holder-error {
+      input {
+        border-color: #71141f;
+      }
+
+      .alert {
+        display: none;
+      }
+    }
+
+    // Input widths
+    input {
+      max-width: 7ex;
+    }
+
+    input[name*="_Year"] {
+      max-width: 10ex;
+    }
+
+    // Remove arrows from numeric field
+    input::-webkit-outer-spin-button,
+    input::-webkit-inner-spin-button {
+      margin: 0;
+      -webkit-appearance: none;
+    }
+
+    input[type="number"] {
+      -moz-appearance: textfield;
+    }
+  }
+}

@@ -1,0 +1,6 @@
+---
+Name: silverstripe-simpledatefield
+---
+SilverStripe\Admin\LeftAndMain:
+  extra_requirements_css:
+    - 'bigfork/silverstripe-simpledatefield:client/dist/styles/cms.css'
