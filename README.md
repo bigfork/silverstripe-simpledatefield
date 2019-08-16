@@ -1,6 +1,6 @@
 # SilverStripe SimpleDateField
 
-A form field for entering dates based on the UK Government’s [date input pattern](https://design-system.service.gov.uk/patterns/dates/), which uses three separate inputs for day, month, and year.
+A form field for entering dates based on the GOV.UK Design System’s [date input pattern](https://design-system.service.gov.uk/patterns/dates/), which uses three separate inputs for day, month, and year.
 
 ## Usage
 ```php
@@ -12,7 +12,7 @@ SimpleDateField::create('DateOfBirth', 'Date of birth', null, SimpleDateField::M
 ```
 
 ## Date of birth
-If using this field to allow users to enter their date of birth, it’s recommended to add relevent `autocomplete` attributes to assist this.
+If using this field to allow users to enter their date of birth, it’s recommended to add relevant `autocomplete` attributes to assist this.
 
 ```php
 $field = SimpleDateField::create('DateOfBirth', 'Date of birth');
