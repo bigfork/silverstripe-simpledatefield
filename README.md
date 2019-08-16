@@ -28,4 +28,5 @@ No front-end styling is provided to display the fields “inline”. You could u
 
 ## Todo
 - Add translation entities for labels/error messages
+- Min/max date options
 - Unit tests
