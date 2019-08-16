@@ -53,13 +53,13 @@ class SimpleDateField extends FormField
      */
     public function __construct($name, $title = null, $value = null, $order = self::DMY)
     {
-        $this->dayField = TextField::create("{$name}[_Day]", 'Day')
+        $this->dayField = TextField::create("{$name}[_Day]", _t(__CLASS__ . '.DayLabel', 'Day'))
             ->setInputType('number')
             ->setAttribute('pattern', '[0-9]*');
-        $this->monthField = TextField::create("{$name}[_Month]", 'Month')
+        $this->monthField = TextField::create("{$name}[_Month]", _t(__CLASS__ . '.MonthLabel', 'Month'))
             ->setInputType('number')
             ->setAttribute('pattern', '[0-9]*');
-        $this->yearField = TextField::create("{$name}[_Year]", 'Year')
+        $this->yearField = TextField::create("{$name}[_Year]", _t(__CLASS__ . '.YearLabel', 'Year'))
             ->setInputType('number')
             ->setAttribute('pattern', '[0-9]*');
 
@@ -104,8 +104,8 @@ class SimpleDateField extends FormField
     public function setSubmittedValue($value, $data = null)
     {
         $this->rawValue = $value;
-
         $this->value = null;
+
         if (is_array($value)) {
             $year = $value['_Year'] ?? '';
             $month = $value['_Month'] ?? '';
@@ -113,9 +113,9 @@ class SimpleDateField extends FormField
 
             // todo - make automatic year 4-digit conversion optional once DBDate accepts years <1000:
             // https://github.com/silverstripe/silverstripe-framework/issues/9133
-            $year = str_pad($year, 4, '19', STR_PAD_LEFT);
-            $month = str_pad($month, 2, '0', STR_PAD_LEFT);
-            $day = str_pad($day, 2, '0', STR_PAD_LEFT);
+            $year = ($year) ? str_pad($year, 4, '19', STR_PAD_LEFT) : '';
+            $month = ($month) ? str_pad($month, 2, '0', STR_PAD_LEFT) : '';
+            $day = ($day) ? str_pad($day, 2, '0', STR_PAD_LEFT) : '';
 
             $this->yearField->setValue($year);
             $this->monthField->setValue($month);
@@ -206,10 +206,30 @@ class SimpleDateField extends FormField
         return $this->yearField;
     }
 
+    /**
+     * @return bool
+     */
+    protected function isEmpty()
+    {
+        if (!is_array($this->rawValue)) {
+            return true;
+        }
+
+        if (
+            !($this->rawValue['_Day'] ?? null)
+            && !($this->rawValue['_Month'] ?? null)
+            && !($this->rawValue['_Year'] ?? null)
+        ) {
+            return true;
+        }
+
+        return false;
+    }
+
     public function validate($validator)
     {
         // Don't attempt to validate empty fields
-        if ($this->rawValue === null) {
+        if ($this->isEmpty()) {
             return true;
         }
 
@@ -218,27 +238,48 @@ class SimpleDateField extends FormField
             $year = (int)$this->getYearField()->Value();
             $month = (int)$this->getMonthField()->Value();
             $day = (int)$this->getDayField()->Value();
-            if ($month) {
+
+            if (!$year) {
+                $validator->validationError(
+                    $this->name,
+                    '[_Year]' . _t(__CLASS__ . '.ErrorMissingYear', 'Please enter a year')
+                );
+            }
+
+            if (!$month) {
+                $validator->validationError(
+                    $this->name,
+                    '[_Month]' . _t(__CLASS__ . '.ErrorMissingMonth', 'Please enter a month')
+                );
+            } else {
                 if ($month > 12) {
                     $validator->validationError(
                         $this->name,
-                        '[_Month] Month invalid'
+                        '[_Month]' . _t(__CLASS__ . '.ErrorInvalidMonth', 'Month invalid')
                     );
                 } else if ($year && function_exists('cal_days_in_month')) {
                     $daysInMonth = cal_days_in_month(CAL_GREGORIAN, $month, $year);
                     if ($day > $daysInMonth) {
                         $validator->validationError(
                             $this->name,
-                            '[_Day] Day invalid'
+                            '[_Day]' . _t(__CLASS__ . '.ErrorInvalidDay', 'Day invalid')
                         );
                     }
                 }
             }
 
+            if (!$day) {
+                $validator->validationError(
+                    $this->name,
+                    '[_Day]' . _t(__CLASS__ . '.ErrorMissingDay', 'Please enter a day')
+                );
+            }
+
             $validator->validationError(
                 $this->name,
-                'Please enter a valid date'
+                _t(__CLASS__ . '.ErrorInvalidDate', 'Please enter a valid date')
             );
+
             return false;
         }
 
@@ -251,7 +292,7 @@ class SimpleDateField extends FormField
         $messageCast = ValidationResult::CAST_TEXT
     ) {
         if (strpos($message, '[_Year]') === 0) {
-            $this->monthField->setMessage(substr($message, 7), $messageType, $messageCast);
+            $this->yearField->setMessage(substr($message, 7), $messageType, $messageCast);
             return $this;
         } if (strpos($message, '[_Month]') === 0) {
             $this->monthField->setMessage(substr($message, 8), $messageType, $messageCast);
