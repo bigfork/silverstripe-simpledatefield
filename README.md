@@ -11,6 +11,8 @@ SimpleDateField::create('DateOfBirth', 'Date of birth', null, SimpleDateField::Y
 SimpleDateField::create('DateOfBirth', 'Date of birth', null, SimpleDateField::MDY);
 ```
 
+If you choose to manually pass a date to the `$value` argument, it must be in the ISO 6801 date format (YYYY-MM-DD).
+
 ## Date of birth
 If using this field to allow users to enter their date of birth, it’s recommended to add relevant `autocomplete` attributes to assist this.
 

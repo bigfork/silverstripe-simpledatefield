@@ -4,9 +4,9 @@ namespace Bigfork\SilverStripeSimpleDateField;
 
 use DateTime;
 use IntlDateFormatter;
+use InvalidArgumentException;
 use SilverStripe\Forms\FieldList;
 use SilverStripe\Forms\FormField;
-use SilverStripe\Forms\FormMessage;
 use SilverStripe\Forms\TextField;
 use SilverStripe\ORM\FieldType\DBDate;
 use SilverStripe\ORM\FieldType\DBDatetime;
@@ -82,16 +82,35 @@ class SimpleDateField extends FormField
      */
     public function setValue($value, $data = null)
     {
-        $timestamp = $this->tidyInternal($value);
-        if (!$timestamp) {
+        if (!$value) {
             $this->value = null;
             return $this;
         }
 
-        $this->value = date('Y-m-d', $timestamp);
-        $this->yearField->setValue(date('Y', $timestamp));
-        $this->monthField->setValue(date('m', $timestamp));
-        $this->dayField->setValue(date('d', $timestamp));
+        // Convert timestamps
+        if (is_numeric($value)) {
+            $value = date('Y-m-d', $value);
+        }
+
+        // Attempt to extract year/month/day components from string
+        // This may be an incompete date, for example: "2019--01", "-01-02" or "2019--", if the
+        // user has failed to fill out one or more of the component fields
+        if (!preg_match('/^(?<year>\d*)-(?<month>\d*)-(?<day>\d*)$/', $value, $matches)) {
+            throw new InvalidArgumentException(
+                "Invalid date: '{$value}'. Use " . DBDate::ISO_DATE . " to prevent this error."
+            );
+        }
+
+        // If *all* the components are missing, this is effectively an empty value
+        if (!$matches['year'] && !$matches['month'] && !$matches['day']) {
+            $this->value = null;
+            return $this;
+        }
+
+        $this->value = "{$matches['year']}-{$matches['month']}-{$matches['day']}";
+        $this->yearField->setValue($matches['year']);
+        $this->monthField->setValue($matches['month']);
+        $this->dayField->setValue($matches['day']);
 
         return $this;
     }
@@ -111,6 +130,7 @@ class SimpleDateField extends FormField
             $month = $value['_Month'] ?? '';
             $day = $value['_Day'] ?? '';
 
+            // Auto-convert days/months to 2-digits and years to 4-digits if they're set
             // todo - make automatic year 4-digit conversion optional once DBDate accepts years <1000:
             // https://github.com/silverstripe/silverstripe-framework/issues/9133
             $year = ($year) ? str_pad($year, 4, '19', STR_PAD_LEFT) : '';
@@ -121,10 +141,10 @@ class SimpleDateField extends FormField
             $this->monthField->setValue($month);
             $this->dayField->setValue($day);
 
+            // If one or more component isn't set, this may result in an incomplete date
+            // like "2019--01". We handle this situation in setValue()
             $date = "{$year}-{$month}-{$day}";
-            if ($this->isValidISODate($date)) {
-                $this->setValue($date);
-            }
+            $this->setValue($date);
         }
 
         return $this;
