@@ -326,48 +326,6 @@ class SimpleDateField extends FormField
     }
 
     /**
-     * Get a date formatter for the ISO 8601 format
-     *
-     * @return IntlDateFormatter
-     */
-    protected function getInternalFormatter()
-    {
-        $formatter = IntlDateFormatter::create(
-            DBDate::ISO_LOCALE,
-            IntlDateFormatter::MEDIUM,
-            IntlDateFormatter::NONE
-        );
-        $formatter->setLenient(false);
-        $formatter->setPattern(DBDate::ISO_DATE);
-
-        return $formatter;
-    }
-
-    /**
-     * @param string $date
-     * @return int|null
-     */
-    protected function tidyInternal($date)
-    {
-        if (!$date) {
-            return null;
-        }
-
-        // Assume date is provided in correct format (Y-m-d)
-        $formatter = $this->getInternalFormatter();
-        $timestamp = $formatter->parse($date);
-        if ($timestamp === false) {
-            // Fallback to strtotime
-            $timestamp = strtotime($date, DBDatetime::now()->getTimestamp());
-            if ($timestamp === false) {
-                return null;
-            }
-        }
-
-        return $timestamp;
-    }
-
-    /**
      * @param string $date
      * @return bool
      */
