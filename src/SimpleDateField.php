@@ -178,7 +178,9 @@ class SimpleDateField extends FormField
      */
     public function setDayField(FormField $field)
     {
+        $field->setName("{$this->name}[_Day]");
         $this->dayField = $field;
+        $this->children->replaceField("{$this->name}[_Day]", $field);
         return $this;
     }
 
@@ -196,7 +198,9 @@ class SimpleDateField extends FormField
      */
     public function setMonthField(FormField $field)
     {
+        $field->setName("{$this->name}[_Month]");
         $this->monthField = $field;
+        $this->children->replaceField("{$this->name}[_Month]", $field);
         return $this;
     }
 
@@ -214,7 +218,9 @@ class SimpleDateField extends FormField
      */
     public function setYearField(FormField $field)
     {
+        $field->setName("{$this->name}[_Year]");
         $this->yearField = $field;
+        $this->children->replaceField("{$this->name}[_Year]", $field);
         return $this;
     }
 
