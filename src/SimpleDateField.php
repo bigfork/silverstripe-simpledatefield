@@ -44,6 +44,11 @@ class SimpleDateField extends FormField
     protected $rawValue;
 
     /**
+     * @var bool
+     */
+    protected $isSubmittingValue = false;
+
+    /**
      * @param string $name
      * @param string|null $title
      * @param string|null $value
@@ -94,9 +99,16 @@ class SimpleDateField extends FormField
         // This may be an incompete date, for example: "2019--01", "-01-02" or "2019--", if the
         // user has failed to fill out one or more of the component fields
         if (!preg_match('/^(?<year>\d*)-(?<month>\d*)-(?<day>\d*)$/', $value, $matches)) {
-            throw new InvalidArgumentException(
-                "Invalid date: '{$value}'. Use " . DBDate::ISO_DATE . " to prevent this error."
-            );
+            // Only throw an exception if this value has been set programatically - NOT by user input
+            if (!$this->isSubmittingValue) {
+                throw new InvalidArgumentException(
+                    "Invalid date: '{$value}'. Use " . DBDate::ISO_DATE . " to prevent this error."
+                );
+            }
+
+            // Date was invalid (e.g. contained letters), so just set an empty value
+            $this->value = null;
+            return $this;
         }
 
         // If *all* the components are missing, this is effectively an empty value
@@ -142,7 +154,10 @@ class SimpleDateField extends FormField
             // If one or more component isn't set, this may result in an incomplete date
             // like "2019--01". We handle this situation in setValue()
             $date = "{$year}-{$month}-{$day}";
+
+            $this->isSubmittingValue = true;
             $this->setValue($date);
+            $this->isSubmittingValue = false;
         }
 
         return $this;
