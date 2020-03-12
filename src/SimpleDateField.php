@@ -3,13 +3,11 @@
 namespace Bigfork\SilverStripeSimpleDateField;
 
 use DateTime;
-use IntlDateFormatter;
 use InvalidArgumentException;
 use SilverStripe\Forms\FieldList;
 use SilverStripe\Forms\FormField;
 use SilverStripe\Forms\TextField;
 use SilverStripe\ORM\FieldType\DBDate;
-use SilverStripe\ORM\FieldType\DBDatetime;
 use SilverStripe\ORM\ValidationResult;
 
 class SimpleDateField extends FormField
@@ -54,13 +52,13 @@ class SimpleDateField extends FormField
     public function __construct($name, $title = null, $value = null, $order = self::DMY)
     {
         $this->dayField = TextField::create("{$name}[_Day]", _t(__CLASS__ . '.DayLabel', 'Day'))
-            ->setInputType('number')
+            ->setAttribute('inputmode', 'numeric')
             ->setAttribute('pattern', '[0-9]*');
         $this->monthField = TextField::create("{$name}[_Month]", _t(__CLASS__ . '.MonthLabel', 'Month'))
-            ->setInputType('number')
+            ->setAttribute('inputmode', 'numeric')
             ->setAttribute('pattern', '[0-9]*');
         $this->yearField = TextField::create("{$name}[_Year]", _t(__CLASS__ . '.YearLabel', 'Year'))
-            ->setInputType('number')
+            ->setAttribute('inputmode', 'numeric')
             ->setAttribute('pattern', '[0-9]*');
 
         if ($order === self::YMD) {
