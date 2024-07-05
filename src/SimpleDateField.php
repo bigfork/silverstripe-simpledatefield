@@ -291,13 +291,13 @@ class SimpleDateField extends FormField
                     '[_Month]' . _t(__CLASS__ . '.ErrorMissingMonth', 'Please enter a month')
                 );
             } else {
-                if ($month > 12) {
+                if ($month < 0 || $month > 12) {
                     $validator->validationError(
                         $this->name,
                         '[_Month]' . _t(__CLASS__ . '.ErrorInvalidMonth', 'Month invalid')
                     );
-                } else if ($year && function_exists('cal_days_in_month')) {
-                    $daysInMonth = cal_days_in_month(CAL_GREGORIAN, $month, $year);
+                } else if ($year) {
+                    $daysInMonth = $this->daysInMonth($month, $year);
                     if ($day > $daysInMonth) {
                         $validator->validationError(
                             $this->name,
@@ -352,5 +352,23 @@ class SimpleDateField extends FormField
     {
         $datetime = DateTime::createFromFormat('Y-m-d', $date);
         return $datetime && $datetime->format('Y-m-d') === $date;
+    }
+
+    protected function daysInMonth(int $month, int $year): int
+    {
+        if ($month === 2) {
+            // Leap year check
+            if (($year % 4 === 0 && $year % 100 !== 0) || ($year % 400 === 0)) {
+                return 29;
+            } else {
+                return 28;
+            }
+        }
+
+        if (in_array($month, [4, 6, 9, 11])) {
+            return 30;
+        }
+
+        return 31;
     }
 }
