@@ -4,11 +4,11 @@ namespace Bigfork\SilverStripeSimpleDateField;
 
 use DateTime;
 use InvalidArgumentException;
+use SilverStripe\Core\Validation\ValidationResult;
 use SilverStripe\Forms\FieldList;
 use SilverStripe\Forms\FormField;
 use SilverStripe\Forms\TextField;
 use SilverStripe\ORM\FieldType\DBDate;
-use SilverStripe\ORM\ValidationResult;
 
 class SimpleDateField extends FormField
 {
@@ -18,43 +18,19 @@ class SimpleDateField extends FormField
 
     protected $schemaDataType = FormField::SCHEMA_DATA_TYPE_DATE;
 
-    /**
-     * @var FieldList
-     */
-    protected $children;
+    protected FieldList $children;
 
-    /**
-     * @var FormField
-     */
-    protected $dayField;
+    protected FormField $dayField;
 
-    /**
-     * @var FormField
-     */
-    protected $monthField;
+    protected FormField $monthField;
 
-    /**
-     * @var FormField
-     */
-    protected $yearField;
+    protected FormField $yearField;
 
-    /**
-     * @var string
-     */
-    protected $rawValue;
+    protected mixed $rawValue;
 
-    /**
-     * @var bool
-     */
-    protected $isSubmittingValue = false;
+    protected bool $isSubmittingValue = false;
 
-    /**
-     * @param string $name
-     * @param string|null $title
-     * @param string|null $value
-     * @param int $order
-     */
-    public function __construct($name, $title = null, $value = null, $order = self::DMY)
+    public function __construct($name, ?string $title = null, ?string $value = null, int $order = self::DMY)
     {
         $this->dayField = TextField::create("{$name}[_Day]", _t(__CLASS__ . '.DayLabel', 'Day'))
             ->setAttribute('inputmode', 'numeric')
@@ -78,12 +54,7 @@ class SimpleDateField extends FormField
         parent::__construct($name, $title, $value);
     }
 
-    /**
-     * @param mixed $value
-     * @param null $data
-     * @return $this
-     */
-    public function setValue($value, $data = null)
+    public function setValue($value, $data = null): static
     {
         if (!$value) {
             $this->value = null;
@@ -125,12 +96,7 @@ class SimpleDateField extends FormField
         return $this;
     }
 
-    /**
-     * @param mixed $value
-     * @param null $data
-     * @return $this
-     */
-    public function setSubmittedValue($value, $data = null)
+    public function setSubmittedValue($value, $data = null): static
     {
         $this->rawValue = $value;
         $this->value = null;
@@ -163,11 +129,7 @@ class SimpleDateField extends FormField
         return $this;
     }
 
-    /**
-     * @param array|FieldList $children
-     * @return $this
-     */
-    public function setChildren($children)
+    public function setChildren(FieldList|array $children): static
     {
         if (is_array($children)) {
             $children = FieldList::create($children);
@@ -177,19 +139,12 @@ class SimpleDateField extends FormField
         return $this;
     }
 
-    /**
-     * @return FieldList
-     */
-    public function getChildren()
+    public function getChildren(): FieldList
     {
         return $this->children;
     }
 
-    /**
-     * @param FormField $field
-     * @return $this
-     */
-    public function setDayField(FormField $field)
+    public function setDayField(FormField $field): static
     {
         $field->setName("{$this->name}[_Day]");
         $this->dayField = $field;
@@ -197,19 +152,12 @@ class SimpleDateField extends FormField
         return $this;
     }
 
-    /**
-     * @return FormField
-     */
-    public function getDayField()
+    public function getDayField(): FormField
     {
         return $this->dayField;
     }
 
-    /**
-     * @param FormField $field
-     * @return $this
-     */
-    public function setMonthField(FormField $field)
+    public function setMonthField(FormField $field): static
     {
         $field->setName("{$this->name}[_Month]");
         $this->monthField = $field;
@@ -217,19 +165,12 @@ class SimpleDateField extends FormField
         return $this;
     }
 
-    /**
-     * @return FormField
-     */
-    public function getMonthField()
+    public function getMonthField(): FormField
     {
         return $this->monthField;
     }
 
-    /**
-     * @param FormField $field
-     * @return $this
-     */
-    public function setYearField(FormField $field)
+    public function setYearField(FormField $field): static
     {
         $field->setName("{$this->name}[_Year]");
         $this->yearField = $field;
@@ -237,18 +178,12 @@ class SimpleDateField extends FormField
         return $this;
     }
 
-    /**
-     * @return FormField
-     */
-    public function getYearField()
+    public function getYearField(): FormField
     {
         return $this->yearField;
     }
 
-    /**
-     * @return bool
-     */
-    protected function isEmpty()
+    protected function isEmpty(): bool
     {
         if (!is_array($this->rawValue)) {
             return true;
@@ -265,11 +200,13 @@ class SimpleDateField extends FormField
         return false;
     }
 
-    public function validate($validator)
+    public function validate(): ValidationResult
     {
+        $validationResult = parent::validate();
+
         // Don't attempt to validate empty fields
         if ($this->isEmpty()) {
-            return true;
+            return $validationResult;
         }
 
         // Value was submitted, but is invalid
@@ -279,27 +216,27 @@ class SimpleDateField extends FormField
             $day = (int)$this->getDayField()->Value();
 
             if (!$year) {
-                $validator->validationError(
+                $validationResult->addFieldError(
                     $this->name,
                     '[_Year]' . _t(__CLASS__ . '.ErrorMissingYear', 'Please enter a year')
                 );
             }
 
             if (!$month) {
-                $validator->validationError(
+                $validationResult->addFieldError(
                     $this->name,
                     '[_Month]' . _t(__CLASS__ . '.ErrorMissingMonth', 'Please enter a month')
                 );
             } else {
                 if ($month < 0 || $month > 12) {
-                    $validator->validationError(
+                    $validationResult->addFieldError(
                         $this->name,
                         '[_Month]' . _t(__CLASS__ . '.ErrorInvalidMonth', 'Month invalid')
                     );
                 } else if ($year) {
                     $daysInMonth = $this->daysInMonth($month, $year);
                     if ($day > $daysInMonth) {
-                        $validator->validationError(
+                        $validationResult->addFieldError(
                             $this->name,
                             '[_Day]' . _t(__CLASS__ . '.ErrorInvalidDay', 'Day invalid')
                         );
@@ -308,35 +245,34 @@ class SimpleDateField extends FormField
             }
 
             if (!$day) {
-                $validator->validationError(
+                $validationResult->addFieldError(
                     $this->name,
                     '[_Day]' . _t(__CLASS__ . '.ErrorMissingDay', 'Please enter a day')
                 );
             }
 
-            $validator->validationError(
+            $validationResult->addFieldError(
                 $this->name,
                 _t(__CLASS__ . '.ErrorInvalidDate', 'Please enter a valid date')
             );
-
-            return false;
         }
 
-        return true;
+        return $validationResult;
     }
 
     public function setMessage(
         $message,
         $messageType = ValidationResult::TYPE_ERROR,
         $messageCast = ValidationResult::CAST_TEXT
-    ) {
-        if (strpos($message, '[_Year]') === 0) {
+    ): static
+    {
+        if (str_starts_with($message, '[_Year]')) {
             $this->yearField->setMessage(substr($message, 7), $messageType, $messageCast);
             return $this;
-        } if (strpos($message, '[_Month]') === 0) {
+        } if (str_starts_with($message, '[_Month]')) {
             $this->monthField->setMessage(substr($message, 8), $messageType, $messageCast);
             return $this;
-        } else if (strpos($message, '[_Day]') === 0) {
+        } else if (str_starts_with($message, '[_Day]')) {
             $this->dayField->setMessage(substr($message, 6), $messageType, $messageCast);
             return $this;
         }
@@ -348,7 +284,7 @@ class SimpleDateField extends FormField
      * @param string $date
      * @return bool
      */
-    protected function isValidISODate($date)
+    protected function isValidISODate(string $date): bool
     {
         $datetime = DateTime::createFromFormat('Y-m-d', $date);
         return $datetime && $datetime->format('Y-m-d') === $date;
